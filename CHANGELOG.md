@@ -1,12 +1,83 @@
 # Changelog
 All notable changes to this project are documented in this file.
 
-## [unreleased]
+## [0.15.0] - 2023-09-05
+### Added
+- 🤖 Add the configuration files to use `YarpRobotLogger` with  `ergoCubGazeboV1` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/690)
+- Implement `RK4` integrator in `ContinuousDynamicalSystem` component and expose the python bindings (https://github.com/ami-iit/bipedal-locomotion-framework/pull/711)
+- Implement `blf-balancing-torque-control` in `utilities` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/707)
+- Implement `setControlMode` in `IRobotControl` and the associated python bindings (https://github.com/ami-iit/bipedal-locomotion-framework/pull/707)
+- Expose `ContactBase` methods for `DiscreteGeometryContact` bindings (https://github.com/ami-iit/bipedal-locomotion-framework/pull/712)
+- Expose the CoM trajectory and angular momentum trajectory in `MANNTrajectoryGenerator` bindings (https://github.com/ami-iit/bipedal-locomotion-framework/pull/712)
+- Expose the CoM trajectory computed by the `CentroidalMPC` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/712)
+- Implement python bindings for `CameraBridge` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/695)
+- Implement `constructRDGBSensorClient()` in `RobotInterface` component (https://github.com/ami-iit/bipedal-locomotion-framework/pull/695)
+
+### Changed
+- Use `std::chorno::nanoseconds` in `clock` and `AdvanceableRunner` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/702)
+- Give the possibility to set an external wrench in the `CentroidalDynamics` instead of a pure force (https://github.com/ami-iit/bipedal-locomotion-framework/pull/705)
+- Use c version of `qhull` in the Planner component. This fixes the compatibility with PCL in ubuntu 20.04 (https://github.com/ami-iit/bipedal-locomotion-framework/pull/713)
+- Make `ICameraBridge::isValid()` virtual function (https://github.com/ami-iit/bipedal-locomotion-framework/pull/695)
+- icub-models 2.0.0 changed the name of the FT sensors in the iCub's URDF from being named `<identifier>_ft_sensor` (like `l_arm_ft_sensor`, `l_leg_ft_sensor`, ...) to `<identifier>_ft` (like `l_arm_ft`, `l_leg_ft`, ...). However, the yarprobotinterface configuration files in blf continued to refer to the sensors as `<identifier>_ft_sensor`, creating errors for software that was trying to match sensors find in URDF and sensors as exposed by the YARP's multipleanalogsensorsserver device. This PR changes all the instances of FT sensor names in iCub-related configuration files contained in blf to `<identifier>_ft`, restoring compatibility with icub-models 2.0.0, robots-configuration releases >= 2.5.0 and ergocub-software >= 0.3.4, see https://github.com/robotology/robots-configuration/pull/562 for more details (https://github.com/ami-iit/bipedal-locomotion-framework/pull/720)
+
+
+### Fixed
+- Remove duplicated `find_package` in `BipedalLocomotionFrameworkDependencies.cmake` file (https://github.com/ami-iit/bipedal-locomotion-framework/pull/709)
+- Fix handling of feedforward acceleration in `BipedalLocomotion::TSID::JointTrackingTask::setSetPoint` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/719)
+
+## [0.14.1] - 2023-07-07
+### Fixed
+- Fix python bindings compilation when toml is not installed (https://github.com/ami-iit/bipedal-locomotion-framework/pull/700)
+- Fix `YarpRobotLoggerDevice` if `YARP_ROBOT_NAME` is not defined (https://github.com/ami-iit/bipedal-locomotion-framework/pull/701)
+
+## [0.14.0] - 2023-07-04
+### Added
+- Implement a class to perform inference with the [MANN network](https://github.com/ami-iit/mann-pytorch) (https://github.com/ami-iit/bipedal-locomotion-framework/pull/652, https://github.com/ami-iit/bipedal-locomotion-framework/pull/686)
+- Add some useful methods to the `SubModel` and `SubModelKinDynWrapper` classes (https://github.com/ami-iit/bipedal-locomotion-framework/pull/661)
+- Implement `Dynamics`, `ZeroVelocityDynamics`, and `JointVelocityStateDynamics` classes in `RobotDynamicsEstimator` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/662)
+- Implement `AccelerometerMeasurementDynamics` and `GyroscopeMeasurementDynamics` classes in `RobotDynamicsEstimator` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/666)
+- Implement `FrictionTorqueStateDynamics` and `MotorCurrentMeasurementDynamics` classes in `RobotDynamicsEstimator` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/667)
+- Add logging of FTs on the ergoCub legs and fix FT and IMU port names (https://github.com/ami-iit/bipedal-locomotion-framework/pull/671)
+- Add the possibility to log the video stream as set of frames or as video in `YarpRobotLoggerDevice` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/672)
+- Add the possibility to log the RGBD stream in `YarpRobotLoggerDevice` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/672)
+- Implement `LieGroupDynamics` in `ContinuousDynamicalSystem` component (https://github.com/ami-iit/bipedal-locomotion-framework/pull/659)
+- Implement `Conversions::toiDynTreePose()` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/659)
+- Implement `Conversions::toiDynTreePose()` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/659)
+- Implement `MANNAutoregressive` class in `ML` component (https://github.com/ami-iit/bipedal-locomotion-framework/pull/659)
+- Implement`UkfState` class in `RobotDynamicsEstimator` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/669)
+- Implement `MANNTrajectoryGenerator` class in `ML` component (https://github.com/ami-iit/bipedal-locomotion-framework/pull/668)
+- Implement a bash script to automatically log the audio along with the YarpRobotLoggerDevice (https://github.com/ami-iit/bipedal-locomotion-framework/pull/681)
+- Implement `QuadraticBezierCurve` in `Math` component (https://github.com/ami-iit/bipedal-locomotion-framework/pull/689)
+- Implement `MANNAutoregressiveInputBuilder` in `ML` component (https://github.com/ami-iit/bipedal-locomotion-framework/pull/689)
+- Implement the `CentroidalMPC` in `ReducedModelControllers`component (https://github.com/ami-iit/bipedal-locomotion-framework/pull/645)
+- Implement the `BaseEstimatorFromFootIMU` in the `Estimators` component (https://github.com/ami-iit/bipedal-locomotion-framework/pull/641)
+- Add bindings for `CentroidalMPC`, `CentroidalDynamics`, `ContactPhaseList`, `DiscreteGeometryContact` and `Corner` component (https://github.com/ami-iit/bipedal-locomotion-framework/pull/650)
+
+### Changed
+- Restructure application folders of `YarpRobotLoggerDevice` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/670)
+- 🤖 [ergoCubSN000] Clean the mas remapper files of the `YarpRobotLoggerDevice` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/673)
+- 🤖 [ergoCubSN000] Enable the logging of the realsense camera `YarpRobotLoggerDevice` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/672)
+- Add the possibility to force the internal state of the `SchmittTrigger` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/684)
+- Add the possibility to update the contact list in the swing foot planner when the contact is not active and the new orientation is different from the previous one (https://github.com/ami-iit/bipedal-locomotion-framework/pull/688)
+- Add the possibility to set the boundary condition for the velocity and acceleration of the `SO3Planner` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/688)
+- Satisfies the rule of 5 for `InputPort`, `OutputPort`, `Advanceable`, `Sink` and `Source` in `System` component (https://github.com/dic-iit/bipedal-locomotion-framework/pull/397).
+
+### Fixed
+- Fix RobotDynamicsEstimator compilation dependencies (https://github.com/ami-iit/bipedal-locomotion-framework/pull/665)
+- Fix the metadata assignment of the rgbd cameras (https://github.com/ami-iit/bipedal-locomotion-framework/pull/672)
+- Fix the RGB to BGR conversion in YarpCameraBridge for FlexImage (https://github.com/ami-iit/bipedal-locomotion-framework/pull/672)
+- Make the YarpSensorBridge compatible with MAS that use the same name between gyro ac magn and
+  orientation (https://github.com/ami-iit/bipedal-locomotion-framework/pull/692)
+
+## [0.13.0] - 2023-04-22
 ### Added
 - Implement the `DiscreteGeometryContact` in Contacts component (https://github.com/ami-iit/bipedal-locomotion-framework/pull/626)
 - Implement the `SchmittTrigger` in component `Math` and the associated python bindings (https://github.com/ami-iit/bipedal-locomotion-framework/pull/624)
 - Add the support of `std::chrono` in The text logging (https://github.com/ami-iit/bipedal-locomotion-framework/pull/630)
 - Add the possibility to retrieve and set duration from the `IParametersHandler` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/630)
+- Add the possibility to update the contact list in the swing foot trajectory planner (https://github.com/ami-iit/bipedal-locomotion-framework/pull/637)
+- Implement `System::NamedTuple` class (https://github.com/ami-iit/bipedal-locomotion-framework/pull/642)
+- Implement `ContinuousDynamicalSystem::CentroidalDynamics` class (https://github.com/ami-iit/bipedal-locomotion-framework/pull/642)
 
 ### Changed
 - Update the `IK tutorial` to use `QPInverseKinematics::build` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/621)
@@ -21,9 +92,19 @@ All notable changes to this project are documented in this file.
 - Update the `blf-position-tracking` to handle time with `std::chrono::nanoseconds` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/630)
 - Update the python bindings to consider the time with `std::chrono::nanoseconds` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/630)
 - Robustify SubModelCreator and SubModelKinDynWrapper tests (https://github.com/ami-iit/bipedal-locomotion-framework/pull/631)
+- `SwingFootTrajectoryPlanner::advance()` must be called before getting the output (https://github.com/ami-iit/bipedal-locomotion-framework/pull/637)
+- Update the already existing classes in `ContinuousDynamicalSystem`to be compatible with the `System::NamedTuple` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/642)
+- Update the code to be compatible with LieGroupControllers v0.2.0 (https://github.com/ami-iit/bipedal-locomotion-framework/pull/653)
+- Allow use of vectors for task gains (https://github.com/ami-iit/bipedal-locomotion-framework/pull/654)
+- `Catch2` is now downloaded with `FetchContent` if `BUILD_TESTING` is set to `ON` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/655)
+- The tests now uses`Catch2 v3` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/655)
+- Add the possibility to set vectorial gains in CoM IK and TSID tasks (https://github.com/ami-iit/bipedal-locomotion-framework/pull/656)
 
 ### Fixed
 - Return an error if an invalid `KinDynComputations` object is passed to `QPInverseKinematics::build()` (https://github.com/ami-iit/bipedal-locomotion-framework/pull/622)
+- Fix `QPTSID` documentation (https://github.com/ami-iit/bipedal-locomotion-framework/pull/634)
+- Fix error messages in `QPTSID` class (https://github.com/ami-iit/bipedal-locomotion-framework/pull/639)
+- Fix compilation failure when using CMake 3.26.1 and pybind11 2.4.3 (https://github.com/ami-iit/bipedal-locomotion-framework/pull/643)
 
 ## [0.12.0] - 2023-03-07
 ### Added
@@ -363,7 +444,11 @@ All notable changes to this project are documented in this file.
 - Added `mas-imu-test` application to check the output of MAS IMUs (https://github.com/ami-iit/bipedal-locomotion-framework/pull/62)
 - Implement motor currents reading in `YarpSensorBridge`. (https://github.com/ami-iit/bipedal-locomotion-framework/pull/187)
 
-[unreleased]: https://github.com/ami-iit/bipedal-locomotion-framework/compare/v0.12.0...master
+[unreleased]: https://github.com/ami-iit/bipedal-locomotion-framework/compare/v0.15.0...master
+[0.15.0]: https://github.com/ami-iit/bipedal-locomotion-framework/compare/v0.14.1...v0.15.0
+[0.14.1]: https://github.com/ami-iit/bipedal-locomotion-framework/compare/v0.14.0...v0.14.1
+[0.14.0]: https://github.com/ami-iit/bipedal-locomotion-framework/compare/v0.13.0...v0.14.0
+[0.13.0]: https://github.com/ami-iit/bipedal-locomotion-framework/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/ami-iit/bipedal-locomotion-framework/compare/v0.11.1...v0.12.0
 [0.11.1]: https://github.com/ami-iit/bipedal-locomotion-framework/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/ami-iit/bipedal-locomotion-framework/compare/v0.10.0...v0.11.0

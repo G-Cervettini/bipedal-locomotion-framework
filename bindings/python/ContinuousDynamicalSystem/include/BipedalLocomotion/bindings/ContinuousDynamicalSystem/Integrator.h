@@ -8,13 +8,16 @@
 #ifndef BIPEDAL_LOCOMOTION_BINDINGS_CONTINUOUS_DYNAMICAL_SYSTEM_INTEGRATOR_H
 #define BIPEDAL_LOCOMOTION_BINDINGS_CONTINUOUS_DYNAMICAL_SYSTEM_INTEGRATOR_H
 
+#include <chrono>
 #include <memory>
 #include <string>
 
 #include <BipedalLocomotion/ContinuousDynamicalSystem/FixedStepIntegrator.h>
 #include <BipedalLocomotion/ContinuousDynamicalSystem/ForwardEuler.h>
 #include <BipedalLocomotion/ContinuousDynamicalSystem/Integrator.h>
+#include <BipedalLocomotion/ContinuousDynamicalSystem/RK4.h>
 
+#include <pybind11/chrono.h>
 #include <pybind11/eigen.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -32,7 +35,7 @@ void CreateIntegrator(pybind11::module& module, const std::string& name)
     namespace py = ::pybind11;
     using namespace BipedalLocomotion::ContinuousDynamicalSystem;
 
-    const std::string completeName = "_" + name + "Integrator";
+    const std::string completeName = "_" + name + "BaseIntegrator";
     py::class_<Integrator<_Derived>, _Args...>(module, completeName.c_str())
         .def("set_dynamical_system",
              &Integrator<_Derived>::setDynamicalSystem,
@@ -63,7 +66,11 @@ void CreateIntegrator(pybind11::module& module, const std::string& name)
                     throw py::value_error("The Dynamical system is not valid.");
                 }
             })
-        .def("get_solution", &Integrator<_Derived>::getSolution)
+        .def("get_solution",
+             [](const Integrator<_Derived>& impl) ->
+             typename Integrator<_Derived>::State::underlying_tuple {
+                 return impl.getSolution().to_tuple();
+             })
         .def("integrate",
              &Integrator<_Derived>::integrate,
              py::arg("initial_time"),
@@ -76,9 +83,8 @@ void CreateFixedStepIntegrator(pybind11::module& module, const std::string& name
     namespace py = ::pybind11;
     using namespace BipedalLocomotion::ContinuousDynamicalSystem;
 
-    CreateIntegrator<FixedStepIntegrator<_Derived>>(module, name);
-
     const std::string completeName = "_" + name + "FixedStepIntegrator";
+    CreateIntegrator<FixedStepIntegrator<_Derived>>(module, name);
     py::class_<FixedStepIntegrator<_Derived>,
                Integrator<FixedStepIntegrator<_Derived>>,
                _Args...>(module, completeName.c_str())
@@ -88,7 +94,7 @@ void CreateFixedStepIntegrator(pybind11::module& module, const std::string& name
         .def("get_integration_step", &FixedStepIntegrator<_Derived>::getIntegrationStep)
         .def_property("integration_step",
                       &FixedStepIntegrator<_Derived>::getIntegrationStep,
-                      [](FixedStepIntegrator<_Derived>& impl, double dt) {
+                      [](FixedStepIntegrator<_Derived>& impl, const std::chrono::nanoseconds& dt) {
                           if (!impl.setIntegrationStep(dt))
                           {
                               throw py::value_error("Invalid integration step.");
@@ -102,11 +108,26 @@ void CreateForwardEulerIntegrator(pybind11::module& module, const std::string& n
     namespace py = ::pybind11;
     using namespace BipedalLocomotion::ContinuousDynamicalSystem;
 
-    CreateFixedStepIntegrator<ForwardEuler<_DynamicalSystem>>(module, name);
-
     const std::string completeName = name + "ForwardEulerIntegrator";
+    CreateFixedStepIntegrator<ForwardEuler<_DynamicalSystem>>(module, completeName);
+
     py::class_<ForwardEuler<_DynamicalSystem>,
                FixedStepIntegrator<ForwardEuler<_DynamicalSystem>>,
+               _Args...>(module, completeName.c_str())
+        .def(py::init());
+}
+
+template <typename _DynamicalSystem, typename... _Args>
+void CreateRK4Integrator(pybind11::module& module, const std::string& name)
+{
+    namespace py = ::pybind11;
+    using namespace BipedalLocomotion::ContinuousDynamicalSystem;
+
+    const std::string completeName = name + "RK4Integrator";
+    CreateFixedStepIntegrator<RK4<_DynamicalSystem>>(module, completeName);
+
+    py::class_<RK4<_DynamicalSystem>,
+               FixedStepIntegrator<RK4<_DynamicalSystem>>,
                _Args...>(module, completeName.c_str())
         .def(py::init());
 }

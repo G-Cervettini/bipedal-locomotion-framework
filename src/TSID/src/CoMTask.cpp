@@ -105,17 +105,27 @@ bool CoMTask::initialize(std::weak_ptr<const ParametersHandler::IParametersHandl
         return false;
     }
 
-    double kpLinear, kdLinear;
-    if (!ptr->getParameter("kp_linear", kpLinear) || !ptr->getParameter("kd_linear", kdLinear))
+    double scalarBuffer;
+    Eigen::Vector3d kpLinear, kdLinear;
+    if (ptr->getParameter("kp_linear", scalarBuffer))
     {
-        log()->error("{} [{}] Unable to get the proportional and derivative linear gain.",
-                     errorPrefix,
-                     m_description);
+        kpLinear.setConstant(scalarBuffer);
+    } else if (!ptr->getParameter("kp_linear", kpLinear))
+    {
+        log()->error("{}, [{}] Unable to get the proportional gain.", errorPrefix, m_description);
         return false;
     }
 
-    m_R3Controller.setGains({kpLinear, kdLinear});
+    if (ptr->getParameter("kd_linear", scalarBuffer))
+    {
+        kdLinear.setConstant(scalarBuffer);
+    } else if (!ptr->getParameter("kd_linear", kdLinear))
+    {
+        log()->error("{}, [{}] Unable to get the derivative gain.", errorPrefix, m_description);
+        return false;
+    }
 
+    m_R3Controller.setGains(std::move(kpLinear), std::move(kdLinear));
     m_isInitialized = true;
 
     return true;
@@ -129,8 +139,8 @@ bool CoMTask::update()
     m_isValid = false;
 
     // set the state
-    m_R3Controller.setState({toEigen(m_kinDyn->getCenterOfMassPosition()),
-                             toEigen(m_kinDyn->getCenterOfMassVelocity())});
+    m_R3Controller.setState(toEigen(m_kinDyn->getCenterOfMassPosition()),
+                            toEigen(m_kinDyn->getCenterOfMassVelocity()));
 
     // update the controller
     m_R3Controller.computeControlLaw();
@@ -155,7 +165,7 @@ bool CoMTask::setSetPoint(Eigen::Ref<const Eigen::Vector3d> position,
                           Eigen::Ref<const Eigen::Vector3d> acceleration)
 {
     bool ok = true;
-    ok = ok && m_R3Controller.setDesiredState({position, velocity});
+    ok = ok && m_R3Controller.setDesiredState(position, velocity);
     ok = ok && m_R3Controller.setFeedForward(acceleration);
     return ok;
 }

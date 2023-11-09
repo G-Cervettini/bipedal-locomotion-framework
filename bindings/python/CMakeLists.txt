@@ -16,31 +16,12 @@ add_subdirectory(TextLogging)
 add_subdirectory(Conversions)
 add_subdirectory(YarpUtilities)
 add_subdirectory(ContinuousDynamicalSystem)
+add_subdirectory(ReducedModelControllers)
+add_subdirectory(ML)
 
-include(ConfigureFileWithCMakeIf)
+include(ConfigureFileWithCMakeIfTarget)
 
-if (FRAMEWORK_COMPILE_RobotInterface AND FRAMEWORK_COMPILE_YarpImplementation)
-  set(FRAMEWORK_COMPILE_BINDINGS_RobotInterface ON)
-else ()
-  set(FRAMEWORK_COMPILE_BINDINGS_RobotInterface OFF)
-endif()
-mark_as_advanced(FRAMEWORK_COMPILE_BINDINGS_RobotInterface)
-
-if (FRAMEWORK_COMPILE_System AND FRAMEWORK_COMPILE_YarpImplementation)
-  set(FRAMEWORK_COMPILE_BINDINGS_YarpSystem ON)
-else ()
-  set(FRAMEWORK_COMPILE_BINDINGS_YarpSystem OFF)
-endif()
-mark_as_advanced(FRAMEWORK_COMPILE_BINDINGS_YarpSystem)
-
-if (FRAMEWORK_COMPILE_System AND FRAMEWORK_COMPILE_RosImplementation)
-  set(FRAMEWORK_COMPILE_BINDINGS_RosSystem ON)
-else ()
-  set(FRAMEWORK_COMPILE_BINDINGS_RosSystem OFF)
-endif()
-mark_as_advanced(FRAMEWORK_COMPILE_BINDINGS_RosSystem)
-
-configure_file_with_cmakeif(${CMAKE_CURRENT_SOURCE_DIR}/bipedal_locomotion_framework.cpp.in
+configure_file_with_cmakeif_target(${CMAKE_CURRENT_SOURCE_DIR}/bipedal_locomotion_framework.cpp.in
   ${CMAKE_CURRENT_BINARY_DIR}/bipedal_locomotion_framework.cpp
   @ONLY)
 
@@ -48,6 +29,7 @@ get_property(pybind_headers GLOBAL PROPERTY pybind_headers)
 get_property(pybind_sources GLOBAL PROPERTY pybind_sources)
 get_property(pybind_include_dirs GLOBAL PROPERTY pybind_include_dirs)
 get_property(pybind_link_libraries GLOBAL PROPERTY pybind_link_libraries)
+get_property(pybind_compile_definitions GLOBAL PROPERTY pybind_compile_definitions)
 
 pybind11_add_module(pybind11_blf MODULE
   ${CMAKE_CURRENT_BINARY_DIR}/bipedal_locomotion_framework.cpp
@@ -55,7 +37,9 @@ pybind11_add_module(pybind11_blf MODULE
   ${pybind_headers}
   )
 
+target_compile_features(pybind11_blf PUBLIC cxx_std_17)
 target_include_directories(pybind11_blf PUBLIC "$<BUILD_INTERFACE:${pybind_include_dirs}>")
+target_compile_definitions(pybind11_blf PRIVATE ${pybind_compile_definitions})
 
 target_link_libraries(pybind11_blf PRIVATE
   ${pybind_link_libraries})

@@ -5,23 +5,26 @@
  * distributed under the terms of the BSD-3-Clause license.
  */
 
+#include <chrono>
 #include <memory>
 
 // Catch2
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <Eigen/Dense>
 
 #include <BipedalLocomotion/ContinuousDynamicalSystem/ForwardEuler.h>
 #include <BipedalLocomotion/ContinuousDynamicalSystem/LinearTimeInvariantSystem.h>
+#include <BipedalLocomotion/ContinuousDynamicalSystem/RK4.h>
 
 using namespace BipedalLocomotion::ContinuousDynamicalSystem;
 
 TEST_CASE("Integrator - Linear system")
 {
-    constexpr double dT = 0.0001;
-    constexpr double tolerance = 1e-3;
-    constexpr double simulationTime = 2;
+    using namespace std::chrono_literals;
+
+    constexpr std::chrono::nanoseconds dT = 100us;
+    constexpr std::chrono::nanoseconds simulationTime = 2s;
 
     // Create the linear system
     /**
@@ -59,15 +62,39 @@ TEST_CASE("Integrator - Linear system")
     system->setControlInput({u});
     system->setState({x0});
 
-    ForwardEuler<LinearTimeInvariantSystem> integrator;
-    REQUIRE(integrator.setIntegrationStep(dT));
-    integrator.setDynamicalSystem(system);
-
-    for (int i = 0; i < simulationTime / dT; i++)
+    SECTION("Forward Euler")
     {
-        const auto& [solution] = integrator.getSolution();
+        constexpr double tolerance = 1e-3;
+        ForwardEuler<LinearTimeInvariantSystem> integrator;
+        REQUIRE(integrator.setIntegrationStep(dT));
+        integrator.setDynamicalSystem(system);
 
-        REQUIRE(solution.isApprox(closeFormSolution(dT * i), tolerance));
-        REQUIRE(integrator.integrate(0, dT));
+        for (int i = 0; i < simulationTime / dT; i++)
+        {
+            const auto& [solution] = integrator.getSolution();
+
+            REQUIRE(
+                solution.isApprox(closeFormSolution(std::chrono::duration<double>(dT * i).count()),
+                                  tolerance));
+            REQUIRE(integrator.integrate(0s, dT));
+        }
+    }
+
+    SECTION("RK4")
+    {
+        constexpr double tolerance = 1e-8;
+        RK4<LinearTimeInvariantSystem> integrator;
+        REQUIRE(integrator.setIntegrationStep(dT));
+        integrator.setDynamicalSystem(system);
+
+        for (int i = 0; i < simulationTime / dT; i++)
+        {
+            const auto& [solution] = integrator.getSolution();
+
+            REQUIRE(
+                solution.isApprox(closeFormSolution(std::chrono::duration<double>(dT * i).count()),
+                                  tolerance));
+            REQUIRE(integrator.integrate(0s, dT));
+        }
     }
 }

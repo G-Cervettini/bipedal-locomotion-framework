@@ -5,8 +5,10 @@
  * distributed under the terms of the GNU Lesser General Public License v2.1 or any later version.
  */
 
+#include <chrono>
+
 // Catch2
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 #include <Eigen/Dense>
 
@@ -17,7 +19,8 @@ using namespace BipedalLocomotion::ContinuousDynamicalSystem;
 
 TEST_CASE("Multistate weight provider")
 {
-    constexpr double dT = 0.01;
+    using namespace std::chrono_literals;
+    constexpr std::chrono::nanoseconds dT = 10ms;
     constexpr double settlingTime = 0.1;
     constexpr double tolerance = 1e-2;
 

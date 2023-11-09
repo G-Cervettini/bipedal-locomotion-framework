@@ -7,7 +7,7 @@
 
 #include <string>
 // Catch2
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 // YARP
 #include <iCubModels/iCubModels.h>
@@ -63,7 +63,7 @@ TEST_CASE("SubModel Creation")
 
     std::vector<std::string> ftFramesList;
     auto ftGroup = groupModel->getGroup("FT").lock();
-    REQUIRE(ftGroup->getParameter("frames", ftFramesList));
+    REQUIRE(ftGroup->getParameter("associated_joints", ftFramesList));
 
     std::vector<std::string> jointsAndFTs;
     jointsAndFTs.insert(jointsAndFTs.begin(), jointList.begin(), jointList.end());
@@ -92,6 +92,7 @@ TEST_CASE("SubModel Creation")
     std::vector<std::string> emptyVector;
     groupFT->setParameter("names", emptyVector);
     groupFT->setParameter("frames", emptyVector);
+    groupFT->setParameter("associated_joints", emptyVector);
     groupModel->setGroup("FT", groupFT);
     REQUIRE(subModelCreatorWithoutFT.createSubModels(groupModel));
 
